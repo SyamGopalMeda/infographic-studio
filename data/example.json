@@ -1,0 +1,59 @@
+{
+  "title": "The LMS",
+  "titleAccent": "Tech Stack",
+  "subtitle": "Every tool behind the Tech Drona learning platform",
+  "author": { "name": "Tech Drona", "handle": "@techdrona" },
+  "theme": { "primary": "#1B7A1B", "secondary": "#5552C9" },
+  "animation": { "loopSeconds": 3, "dotsPerWire": 1, "dotRadius": 5 },
+  "rows": [
+    {
+      "style": "card",
+      "items": [
+        { "id": "students", "label": "Students", "icon": "🎓" },
+        { "id": "trainers", "label": "Trainers", "icon": "🧑‍🏫" },
+        { "id": "admins", "label": "Admins", "icon": "🛠️" },
+        { "id": "colleges", "label": "Colleges", "icon": "🏫" }
+      ]
+    },
+    {
+      "style": "bar",
+      "items": [
+        { "id": "web", "label": "Web Portal", "from": ["students", "trainers"] },
+        { "id": "ops", "label": "Admin & College Portals", "from": ["admins", "colleges"] }
+      ]
+    },
+    {
+      "style": "group",
+      "tint": "a",
+      "items": [
+        { "id": "fe", "label": "Frontend", "from": ["web"], "tools": [ { "name": "React", "logo": "react" }, { "name": "Vite", "logo": "vite" } ] },
+        { "id": "ui", "label": "Styling", "from": ["web"], "tools": [ { "name": "Tailwind", "logo": "tailwindcss" }, { "name": "TypeScript", "logo": "typescript" } ] },
+        { "id": "auth", "label": "Auth", "from": ["ops"], "tools": [ { "name": "Firebase Auth", "logo": "firebase" }, { "name": "SSO", "icon": "🔐" } ] },
+        { "id": "mail", "label": "Email", "from": ["ops"], "tools": [ { "name": "Mailpit", "icon": "✉️" }, { "name": "Gmail", "logo": "gmail" } ] }
+      ]
+    },
+    {
+      "style": "bar",
+      "items": [ { "id": "api", "label": "API Layer" } ]
+    },
+    {
+      "style": "group",
+      "items": [
+        { "id": "fn", "label": "Cloud Functions", "from": ["api"], "tools": [ { "name": "Node.js", "logo": "nodedotjs" }, { "name": "Express", "logo": "express" } ] },
+        { "id": "run", "label": "Cloud Run", "from": ["api"], "tools": [ { "name": "Docker", "logo": "docker" }, { "name": "Google Cloud", "logo": "googlecloud" } ] },
+        { "id": "db", "label": "Database", "from": ["api"], "tools": [ { "name": "Firestore", "logo": "firebase" } ] },
+        { "id": "files", "label": "Storage", "from": ["api"], "tools": [ { "name": "Cloud Storage", "logo": "googlecloudstorage" } ] }
+      ]
+    },
+    {
+      "style": "panel",
+      "items": [
+        { "id": "qa", "label": "Testing & Quality", "from": ["fn", "run", "db", "files"], "tools": [ { "name": "Playwright", "logo": "playwright" }, { "name": "Cloud Build", "logo": "googlecloud" } ] }
+      ]
+    },
+    {
+      "style": "final",
+      "items": [ { "id": "live", "label": "Learning live for every student" } ]
+    }
+  ]
+}

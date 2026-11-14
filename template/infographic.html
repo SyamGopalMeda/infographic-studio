@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animated Infographic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1B7A1B;
+    --secondary: #5552C9;
+    --accent: #2E7D32;
+    --ink: #1d1d2b;
+    --bg: #ffffff;
+    --tint-a: #EEF6EC;
+    --tint-b: #EEEEFA;
+    --line: #22252b;
+    --dot: #2E7D32;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #d9dbe0; height: 100%; }
+  body { display: grid; place-items: center; overflow: hidden; font-family: "Poppins", system-ui, sans-serif; }
+  body.capture { background: var(--bg); place-items: start; }
+
+  #stage {
+    width: 1080px; height: 1350px; position: relative; overflow: hidden;
+    background: var(--bg); color: var(--ink); font-size: 20px;
+    transform-origin: top left;
+  }
+  #content {
+    position: absolute; inset: 0; padding: 1.4em 0.8em 1.2em;
+    display: flex; flex-direction: column; gap: 1.15em;
+  }
+  svg#wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+  .row, header { position: relative; z-index: 2; }
+
+  header { text-align: center; display: flex; flex-direction: column; align-items: center; gap: .45em; }
+  .title-box {
+    background: #fff; padding: .15em .9em; border-radius: .3em;
+    box-shadow: 0 .35em 1em rgba(40,40,90,.15);
+  }
+  h1 { font-size: 3.4em; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; color: var(--secondary); }
+  h1 .accent { color: var(--primary); }
+  .badge {
+    display: inline-flex; align-items: center; gap: .4em; font-size: .62em; font-weight: 700;
+    border: 2px solid var(--line); border-radius: .5em; padding: .15em .6em; background: #fff; color: var(--primary);
+  }
+  .badge img { width: 1.8em; height: 1.8em; border-radius: 50%; object-fit: cover; }
+  .badge small { display: block; color: #555; font-weight: 500; font-size: .8em; }
+  .subtitle {
+    font-size: 1.15em; font-weight: 500; background: #fff; padding: .15em .7em; border-radius: .3em;
+    box-shadow: 0 .25em .8em rgba(40,40,90,.12);
+  }
+
+  .row { display: flex; gap: .5em; align-items: stretch; justify-content: center; }
+  .row.tint-a { background: var(--tint-a); border-radius: .5em; padding: .5em; }
+  .row.tint-b { background: var(--tint-b); border-radius: .5em; padding: .5em; }
+  .node { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .node.narrow { flex: 0 1 auto; min-width: 30%; }
+
+  /* style: card — big colored tile with round icon on top */
+  .card {
+    background: var(--primary); color: #fff; border-radius: .4em; text-align: center;
+    padding: 1.6em .3em .55em; font-weight: 700; font-size: 1.05em; position: relative; margin-top: 1.3em;
+    box-shadow: 0 .3em .7em rgba(0,0,0,.15);
+  }
+  .card .ico {
+    position: absolute; top: -1.35em; left: 50%; transform: translateX(-50%);
+    width: 2.6em; height: 2.6em; border-radius: 50%; background: #fff; border: 3px solid var(--primary);
+    display: grid; place-items: center; font-size: 1em; overflow: hidden;
+  }
+  .card .ico img { width: 64%; height: 64%; object-fit: contain; }
+  .card .ico .emoji { font-size: 1.35em; line-height: 1; }
+
+  /* style: bar — solid pill heading */
+  .bar {
+    background: var(--secondary); color: #fff; border-radius: .35em; text-align: center;
+    padding: .5em .6em; font-weight: 700; font-size: 1.05em;
+    box-shadow: 0 .3em .7em rgba(0,0,0,.15);
+  }
+  .bar.green { background: var(--primary); }
+
+  /* style: group — header + list of tools with logos */
+  .group { background: rgba(255,255,255,.55); border-radius: .4em; overflow: hidden; height: 100%;
+    box-shadow: 0 .25em .6em rgba(0,0,0,.08); }
+  .group .gh {
+    background: var(--primary); color: #fff; font-weight: 700; text-align: center;
+    padding: .35em .3em; font-size: .82em; line-height: 1.15; min-height: 2.6em; display: grid; place-items: center;
+  }
+  .group.purple .gh { background: var(--secondary); }
+  .tools { display: grid; gap: .4em .5em; padding: .5em .45em; grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr)); }
+  .tool { display: flex; align-items: center; gap: .35em; font-size: .68em; font-weight: 500; line-height: 1.15; min-width: 0; }
+  .tool .lg {
+    flex: none; width: 1.9em; height: 1.9em; border-radius: 50%; background: #fff;
+    display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.18); overflow: hidden;
+  }
+  .tool .lg img { width: 62%; height: 62%; object-fit: contain; }
+  .tool .lg .fallback { font-weight: 700; font-size: .85em; color: #fff; width: 100%; height: 100%; display: grid; place-items: center; }
+  .tool span.name { overflow-wrap: anywhere; }
+
+  /* style: chips — horizontal strip of logos (e.g. models) */
+  .chips { display: flex; justify-content: space-around; align-items: center; gap: .6em; padding: .45em .4em; width: 100%; }
+  .chips .tool { font-size: .95em; }
+  .chips .tool .lg { width: 2.1em; height: 2.1em; }
+
+  /* style: final — highlighted outcome */
+  .final { background: var(--secondary); color: #fff; font-weight: 800; font-size: 1.3em; text-align: center;
+    padding: .45em 1.2em; border-radius: .35em; box-shadow: 0 .4em 1em rgba(60,60,160,.3); }
+  .final.glow { animation: none; }
+
+  /* style: panel — light box with title + inline tools (e.g. Deploy & Scale) */
+  .panel { background: var(--tint-b); border-radius: .4em; padding: .4em .7em; text-align: center; }
+  .panel .pt { font-weight: 700; font-size: .95em; margin-bottom: .25em; }
+  .panel .tools { display: flex; flex-wrap: wrap; justify-content: center; padding: 0; gap: .3em .9em; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="wires">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
+      </marker>
+    </defs>
+    <g id="paths"></g>
+    <g id="dots"></g>
+  </svg>
+  <div id="content"></div>
+</div>
+
+<!-- The make script replaces the JSON inside this tag with your data file. -->
+<script id="data" type="application/json">/*DATA*/</script>
+
+<script>
+(() => {
+  const raw = document.getElementById('data').textContent.trim();
+  let DATA;
+  try { DATA = JSON.parse(raw); } catch (e) { DATA = null; }
+  if (!DATA) { document.getElementById('content').textContent = 'No data. Run: node scripts/make.mjs data/<file>.json'; return; }
+
+  const stage = document.getElementById('stage');
+  const content = document.getElementById('content');
+  const theme = DATA.theme || {};
+  const map = { primary: '--primary', secondary: '--secondary', bg: '--bg', ink: '--ink', tintA: '--tint-a', tintB: '--tint-b', line: '--line', dot: '--dot' };
+  for (const [k, v] of Object.entries(map)) if (theme[k]) stage.style.setProperty(v, theme[k]);
+
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const palette = ['#E4572E', '#2E86AB', '#7B2CBF', '#F18F01', '#1B998B', '#C73E1D', '#3D5A80'];
+  const colorFor = s => palette[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % palette.length];
+
+  // Logo: {logo:"simple-icons slug"} | {logoUrl:"https://..."} | {icon:"emoji"} | fallback initial.
+  function logoHTML(t) {
+    const fb = `<span class="fallback" style="background:${colorFor(t.name || t.label)}">${esc((t.name || t.label || '?').trim()[0] || '?')}</span>`;
+    if (t.icon) return `<span class="emoji">${esc(t.icon)}</span>`;
+    const src = t.logoUrl || (t.logo ? `https://cdn.simpleicons.org/${encodeURIComponent(t.logo)}` : null);
+    if (!src) return fb;
+    return `<img src="${esc(src)}" alt="" crossorigin="anonymous" onerror="this.outerHTML=this.dataset.fb" data-fb="${esc(fb)}">`;
+  }
+  const toolHTML = t => `<div class="tool"><span class="lg">${logoHTML(t)}</span><span class="name">${esc(t.name)}</span></div>`;
+
+  // ---------- header ----------
+  const h = document.createElement('header');
+  const titleParts = `${esc(DATA.title || '')}${DATA.titleAccent ? ` <span class="accent">${esc(DATA.titleAccent)}</span>` : ''}`;
+  let html = `<div class="title-box"><h1>${titleParts}</h1></div>`;
+  if (DATA.author && DATA.author.name) {
+    const a = DATA.author;
+    html += `<div class="badge">${a.photo ? `<img src="${esc(a.photo)}" alt="">` : ''}<div>${esc(a.name)}${a.handle ? `<small>${esc(a.handle)}</small>` : ''}</div></div>`;
+  }
+  if (DATA.subtitle) html += `<div class="subtitle">${esc(DATA.subtitle)}</div>`;
+  h.innerHTML = html;
+  content.appendChild(h);
+
+  // ---------- rows ----------
+  const rows = DATA.rows || [];
+  const rowEls = [];
+  rows.forEach((row, ri) => {
+    const r = document.createElement('div');
+    r.className = 'row' + (row.tint ? ` tint-${row.tint}` : '');
+    if (row.gap) r.style.gap = row.gap;
+    (row.items || []).forEach((it, ii) => {
+      it.id = it.id || `r${ri}i${ii}`;
+      const n = document.createElement('div');
+      n.className = 'node' + (row.style === 'bar' || row.style === 'final' || row.style === 'panel' ? (row.items.length <= 2 && row.style !== 'bar' ? ' narrow' : '') : '');
+      if (it.flex) n.style.flex = it.flex;
+      n.dataset.id = it.id;
+      const variant = it.variant ? ` ${it.variant}` : '';
+      switch (row.style) {
+        case 'card':
+          n.innerHTML = `<div class="card${variant}" data-anchor><span class="ico">${logoHTML(it)}</span>${esc(it.label)}</div>`; break;
+        case 'group': {
+          const cols = it.cols || ((it.tools || []).length > 2 && row.items.length <= 3 ? 2 : 1);
+          n.innerHTML = `<div class="group${variant}" data-anchor><div class="gh">${esc(it.label)}</div><div class="tools" style="--cols:${cols}">${(it.tools || []).map(toolHTML).join('')}</div></div>`; break;
+        }
+        case 'chips':
+          n.innerHTML = `<div class="chips" data-anchor>${(it.tools || []).map(toolHTML).join('')}</div>`; break;
+        case 'final':
+          n.innerHTML = `<div class="final${variant}" data-anchor>${esc(it.label)}</div>`; break;
+        case 'panel':
+          n.innerHTML = `<div class="panel" data-anchor><div class="pt">${esc(it.label)}</div><div class="tools">${(it.tools || []).map(toolHTML).join('')}</div></div>`; break;
+        case 'bar':
+        default:
+          n.innerHTML = `<div class="bar${variant}" data-anchor>${esc(it.label)}</div>`;
+      }
+      r.appendChild(n);
+    });
+    content.appendChild(r);
+    rowEls.push(r);
+  });
+
+  // ---------- edges ----------
+  // Explicit: item.from = ["id", ...]. Otherwise auto-connect to previous row.
+  const edges = [];
+  rows.forEach((row, ri) => {
+    if (ri === 0 || row.connect === false) return;
+    const prev = rows[ri - 1].items || [];
+    const cur = row.items || [];
+    cur.forEach((it, ii) => {
+      let from = it.from;
+      if (!from) {
+        if (prev.length === 1 || cur.length === 1) from = cur.length === 1 ? prev.map(p => p.id) : [prev[0].id];
+        else {
+          // proportional mapping: each prev item feeds the children under it
+          from = [prev[Math.min(prev.length - 1, Math.floor((ii + 0.5) * prev.length / cur.length))].id];
+        }
+      }
+      from.forEach(f => edges.push({ from: f, to: it.id }));
+    });
+  });
+
+  // ---------- fit to 1350px ----------
+  // natural height of the content (not the stretched box)
+  function used() {
+    const last = content.lastElementChild;
+    return last.offsetTop + last.offsetHeight + parseFloat(getComputedStyle(content).paddingBottom);
+  }
+  function fit() {
+    content.style.justifyContent = 'flex-start';
+    const H = stage.clientHeight;
+    let fs = 20;
+    const set = v => { fs = v; stage.style.fontSize = v + 'px'; };
+    set(fs);
+    while (used() > H && fs > 9) set(fs - 0.5);          // too tall: shrink
+    while (used() < H * 0.9 && fs < 27) {                  // lots of room: grow
+      set(fs + 0.5);
+      if (used() > H) { set(fs - 0.5); break; }
+    }
+    // spread rows evenly over any space that is left
+    if (H - used() > 30) content.style.justifyContent = 'space-between';
+  }
+
+  // ---------- wires ----------
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const gPaths = document.getElementById('paths');
+  const gDots = document.getElementById('dots');
+  let wires = [];
+  const anim = Object.assign({ loopSeconds: 3, dotsPerWire: 1, dotRadius: 5 }, DATA.animation || {});
+
+  function anchorRect(id) {
+    const n = content.querySelector(`[data-id="${CSS.escape(id)}"] [data-anchor]`);
+    if (!n) return null;
+    const s = stage.getBoundingClientRect(), r = n.getBoundingClientRect();
+    const k = stage.offsetWidth / s.width; // undo preview scaling
+    return { x: (r.left - s.left) * k, y: (r.top - s.top) * k, w: r.width * k, h: r.height * k };
+  }
+
+  function drawWires() {
+    gPaths.innerHTML = ''; gDots.innerHTML = ''; wires = [];
+    // group edges by target to make a shared "bus" level per target row
+    edges.forEach((e, i) => {
+      const a = anchorRect(e.from), b = anchorRect(e.to);
+      if (!a || !b) return;
+      const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y;
+      // horizontal run sits just above the target, so parallel wires share one bus line
+      const midY = y2 - Math.max(10, Math.min(24, (y2 - y1) * 0.45));
+      const d = Math.abs(x1 - x2) < 1 ? `M${x1},${y1} V${y2 - 2}` : `M${x1},${y1} V${midY} H${x2} V${y2 - 2}`;
+      const p = document.createElementNS(SVGNS, 'path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', 'var(--line)');
+      p.setAttribute('stroke-width', '2');
+      p.setAttribute('stroke-linejoin', 'round');
+      p.setAttribute('marker-end', 'url(#arrow)');
+      gPaths.appendChild(p);
+      const len = p.getTotalLength();
+      const dots = [];
+      for (let k = 0; k < anim.dotsPerWire; k++) {
+        const c = document.createElementNS(SVGNS, 'circle');
+        c.setAttribute('r', anim.dotRadius);
+        c.setAttribute('fill', k % 2 ? 'var(--secondary)' : 'var(--dot)');
+        c.setAttribute('stroke', '#fff');
+        c.setAttribute('stroke-width', '1.5');
+        gDots.appendChild(c);
+        dots.push({ c, offset: (k / anim.dotsPerWire) + ((i * 0.137) % 1) });
+      }
+      wires.push({ p, len, dots });
+    });
+  }
+
+  // Deterministic frame renderer: same t => same picture (used for video capture).
+  window.renderAt = function (t) {
+    const T = anim.loopSeconds;
+    for (const w of wires) {
+      for (const d of w.dots) {
+        const phase = ((t / T) + d.offset) % 1;
+        const pt = w.p.getPointAtLength(phase * w.len);
+        d.c.setAttribute('cx', pt.x.toFixed(2));
+        d.c.setAttribute('cy', pt.y.toFixed(2));
+        // fade in/out at the ends so the loop looks smooth
+        const fade = Math.min(1, phase / 0.08, (1 - phase) / 0.08);
+        d.c.setAttribute('opacity', fade.toFixed(3));
+      }
+    }
+  };
+
+  // Preview scaling (only for viewing in a normal browser window)
+  function scalePreview() {
+    if (document.body.classList.contains('capture')) { stage.style.transform = ''; return; }
+    const s = Math.min(window.innerWidth / 1080, window.innerHeight / 1350, 1) * 0.97;
+    stage.style.transform = `scale(${s})`;
+    document.body.style.height = '100vh';
+    stage.style.marginBottom = `${-1350 * (1 - s)}px`;
+    stage.style.marginRight = `${-1080 * (1 - s)}px`;
+  }
+
+  function layout() { fit(); drawWires(); window.renderAt(performance.now() / 1000); }
+
+  if (new URLSearchParams(location.search).has('capture')) document.body.classList.add('capture');
+  scalePreview();
+  window.addEventListener('resize', () => { scalePreview(); drawWires(); });
+
+  const imgs = [...document.images].map(img => img.complete ? null : new Promise(r => { img.onload = img.onerror = r; })).filter(Boolean);
+  Promise.all([document.fonts ? document.fonts.ready : null, ...imgs]).then(() => {
+    layout();
+    window.__ready = true;
+    if (!document.body.classList.contains('capture')) {
+      const loop = () => { window.renderAt(performance.now() / 1000); requestAnimationFrame(loop); };
+      requestAnimationFrame(loop);
+    }
+  });
+})();
+</script>
+</body>
+</html>

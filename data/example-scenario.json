@@ -1,0 +1,41 @@
+{
+  "title": "How We Hire",
+  "titleAccent": "Trainers",
+  "subtitle": "The Tech Drona trainer hiring journey, step by step",
+  "author": { "name": "Tech Drona", "handle": "@techdrona" },
+  "theme": { "primary": "#1B7A1B", "secondary": "#5552C9", "bg": "#ffffff", "tintA": "#EEF6EC", "tintB": "#EEEEFA", "line": "#22252b", "dot": "#2E7D32" },
+  "animation": { "loopSeconds": 3, "dotsPerWire": 1, "dotRadius": 5 },
+  "rows": [
+    { "style": "card", "items": [
+      { "id": "careers", "label": "Careers Page", "icon": "🌐" },
+      { "id": "linkedin", "label": "LinkedIn Post", "icon": "💼" },
+      { "id": "referral", "label": "Referrals", "icon": "🤝" }
+    ] },
+    { "style": "bar", "items": [
+      { "id": "apply", "label": "1. Application", "from": ["careers", "linkedin", "referral"] }
+    ] },
+    { "style": "group", "tint": "a", "items": [
+      { "id": "review", "label": "Profile Review", "from": ["apply"], "cols": 1,
+        "tools": [ { "name": "Resume & Portfolio", "icon": "📄" }, { "name": "Tech Expertise", "icon": "🧠" }, { "name": "Teaching Experience", "icon": "🎓" } ] },
+      { "id": "screen", "label": "2. Screening Call", "from": ["apply"], "cols": 1,
+        "tools": [ { "name": "Communication", "icon": "🗣️" }, { "name": "Availability", "icon": "📅" }, { "name": "Expectations", "icon": "🎯" } ] }
+    ] },
+    { "style": "bar", "items": [
+      { "id": "demo", "label": "3. Demo Class", "from": ["review", "screen"] },
+      { "id": "panel", "label": "4. Panel Interview", "variant": "green", "from": ["review", "screen"] }
+    ] },
+    { "style": "group", "tint": "b", "items": [
+      { "id": "democheck", "label": "Demo Scorecard", "variant": "purple", "from": ["demo"], "cols": 1,
+        "tools": [ { "name": "Clarity", "icon": "💡" }, { "name": "Engagement", "icon": "🙋" }, { "name": "Hands-on Code", "icon": "💻" } ] },
+      { "id": "panelcheck", "label": "Panel Focus", "from": ["panel"], "cols": 1,
+        "tools": [ { "name": "Deep Tech Q&A", "icon": "🔍" }, { "name": "Culture Fit", "icon": "🌱" }, { "name": "Curriculum Ideas", "icon": "🧩" } ] }
+    ] },
+    { "style": "panel", "items": [
+      { "id": "offer", "label": "5. Offer & Onboarding", "from": ["democheck", "panelcheck"],
+        "tools": [ { "name": "Offer Letter", "icon": "✉️" }, { "name": "LMS Access", "icon": "🔑" }, { "name": "Mentor Buddy", "icon": "🧑‍🏫" }, { "name": "First Batch", "icon": "🚀" } ] }
+    ] },
+    { "style": "final", "items": [
+      { "id": "live", "label": "Trainer ready to teach" }
+    ] }
+  ]
+}

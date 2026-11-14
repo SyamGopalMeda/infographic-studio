@@ -1,0 +1,5 @@
+node_modules/
+out/
+input/
+inbox/
+.claude/settings.local.json

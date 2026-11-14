@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit(data/**)",
+      "Write(data/**)",
+      "Bash(node scripts/make.mjs:*)",
+      "Bash(node scripts\\make.mjs:*)"
+    ]
+  }
+}

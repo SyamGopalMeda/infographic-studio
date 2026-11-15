@@ -7,7 +7,7 @@ Give it an **image** or a **written scenario**. You get back either:
 
 It is also a **Claude Code plugin** (like HyperFrames). Once installed, it works in **every folder**, not only this one.
 
-One install sets up everything, including the **HyperFrames** plugin for Claude Code (advanced videos).
+Installing it **also installs HyperFrames** (HeyGen's open-source video plugin) as a dependency. Claude can then use HyperFrames for any general video work, such as promos, reels and animated intros. The infographic and PPT features don't use HyperFrames; they work on their own.
 
 ## New laptop (one time)
 ```
@@ -18,8 +18,7 @@ cd infographic-studio
    - installs Node.js and Claude Code if they are missing
    - installs the packages and the recorder
    - test-builds an example video and an example deck
-   - installs **this studio as a Claude plugin**
-   - installs the **HyperFrames** plugin
+   - installs **this studio as a Claude plugin from GitHub**, which also brings **HyperFrames**
 2. Open a terminal, type `claude`, and **sign in once**.
 
 ### Install only the plugin (no clone needed)
@@ -28,7 +27,7 @@ Any laptop with Claude Code and Node.js can install it with two commands:
 claude plugin marketplace add SyamGopalMeda/infographic-studio
 claude plugin install infographic-studio@tech-drona
 ```
-The first time a skill renders, it installs its packages by itself, which takes 1–2 minutes. The `.bat` files need the cloned repo.
+This also installs **HyperFrames** automatically. The first time a skill renders, it installs its packages by itself, which takes 1–2 minutes. The `.bat` files need the cloned repo.
 
 ### Update after changes
 Run `git pull`, then `claude plugin marketplace update tech-drona`, then `claude plugin update infographic-studio@tech-drona`. Restart Claude.

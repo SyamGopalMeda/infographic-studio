@@ -6,7 +6,14 @@
     {
       "name": "infographic-studio",
       "source": "./",
-      "description": "Image or scenario to animated LinkedIn infographic (MP4/GIF/PPTX) or editable PowerPoint deck."
+      "description": "Image or scenario to animated LinkedIn infographic (MP4/GIF/PPTX) or editable PowerPoint deck. Installs HyperFrames alongside for general video work."
+    },
+    {
+      "name": "hyperframes",
+      "source": { "source": "github", "repo": "heygen-com/hyperframes" },
+      "description": "HyperFrames by HeyGen (Apache-2.0): write HTML, render video. Listed here so infographic-studio can install it automatically.",
+      "homepage": "https://hyperframes.heygen.com",
+      "license": "Apache-2.0"
     }
   ]
 }

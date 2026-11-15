@@ -5,12 +5,21 @@ description: Turn any image (an infographic, flowchart, tech-stack diagram, whit
 
 # Animated infographic from an image
 
-The whole visual is produced by ONE fixed template (`template/infographic.html`). Your only job is to write a
-data file that describes the content, then run the make script. Never edit the template for a single post.
+The whole visual is produced by ONE fixed template inside the studio. Your only job is to write a
+data file that describes the content, then run the studio script. Never edit the template for a single post.
+
+## Where things are (works from any folder)
+
+- **STUDIO** = the studio folder = two folders above this skill's base directory
+  (base directory `…/skills/animated-infographic` → STUDIO is `…`). It contains `scripts/studio.mjs`.
+- **WORK** = where the data file goes:
+  - if the current folder IS the studio (it has `scripts/studio.mjs`), use `data/`;
+  - otherwise use `infographics/` in the current folder (create it).
+- The output folder is created automatically: `out/<name>/` in the studio, else `infographics/<name>/`.
+
+You may be running unattended (headless): do not ask questions — make sensible choices and finish.
 
 ## Steps
-
-You run unattended (often headless): do not ask questions — make sensible choices and finish.
 
 1. **Understand the input.**
    - **Image** (use the Read tool on its path; if pasted, it is already visible):
@@ -28,14 +37,17 @@ You run unattended (often headless): do not ask questions — make sensible choi
 2. **Make it ours, not a copy.** Use the user's brand in `author` (default `{"name":"Tech Drona","handle":"@techdrona"}`)
    — never the original creator's name or photo. Reword titles/labels; keep facts. If the image is someone else's
    post, say in your reply that the result is "inspired by" it.
-3. **Write `data/<short-kebab-name>.json`** following the schema below. Fit to one 1080×1350 portrait frame:
+3. **Write `WORK/<short-kebab-name>.json`** following the schema below. Fit to one 1080×1350 portrait frame:
    max ~7 rows, max 6 items per row, max 4 tools per group, labels ≤ 4 words.
-4. **Run** from the project root:
-   `node scripts/make.mjs data/<name>.json`
-   (HTML preview only, faster: add `--no-video`.) Rendering takes about 1 minute.
-5. **Check it.** Read `out/<name>/infographic.html` back only if the script errored. If logos show as a coloured
-   letter, the simple-icons slug was wrong: fix the slug (or use `"icon": "<emoji>"`) and re-run.
-6. **Reply** with the three output paths (HTML, MP4, GIF), one line saying what the diagram shows, and a short
+4. **Run** (skip this step if you were told the caller renders it):
+   `node "STUDIO/scripts/studio.mjs" make "WORK/<name>.json" --pptx`
+   - Use the real absolute STUDIO path, in quotes, because it may contain spaces.
+   - Rendering takes about 1 minute. The first run ever also installs packages (1–2 minutes), so allow a
+     timeout of at least 10 minutes.
+   - Options: `--format landscape` (16:9, for slides/YouTube) or `--format square`; `--no-gif`; `--no-video` (HTML only).
+5. **Check it.** If logos show as a coloured letter, the simple-icons slug was wrong: fix the slug (or use
+   `"icon": "<emoji>"`) and run again.
+6. **Reply** with the output folder (MP4, GIF, PPTX, HTML), one line saying what the diagram shows, and a short
    LinkedIn caption (hook line, 3 lines of value, 3–5 hashtags).
 
 ## Data schema
@@ -72,7 +84,8 @@ Row styles:
 - `final` — the highlighted outcome at the bottom.
 - Optional per row: `"tint": "a"` (green wash) or `"b"` (purple wash) background; `"connect": false` to draw no wires into this row.
 
-Connections: put `"from": ["parentId", ...]` on an item. Without `from`, items auto-connect to the row above
+Connections: put `"from": ["parentId", ...]` on an item. A parent must be in the row DIRECTLY above
+(never the same row or two rows up: such links are ignored). Steps that follow each other go in separate rows. Without `from`, items auto-connect to the row above
 (one-to-many, many-to-one, or proportionally by position). Every `id` must be unique.
 
 Logos, in order of preference:

@@ -1,0 +1,7 @@
+{
+  "name": "infographic-studio",
+  "description": "Tech Drona Infographic Studio. Turn an image or a written scenario into an animated LinkedIn infographic (MP4, GIF, PPTX) or an editable PowerPoint deck.",
+  "version": "1.2.2",
+  "author": { "name": "Tech Drona" },
+  "license": "UNLICENSED"
+}

@@ -30,7 +30,9 @@ if (!SIZES[data.format]) data.format = 'portrait';
 const [W, H] = SIZES[data.format];
 
 const name = basename(dataPath, '.json');
-const outDir = resolve(opt('out', join(root, 'out', name)));
+// Inside the studio repo: out/<name>/. Used from another project (plugin): next to the JSON, <dir>/<name>/.
+const inStudio = dataPath.toLowerCase().startsWith(root.toLowerCase());
+const outDir = resolve(opt('out', inStudio ? join(root, 'out', name) : join(dirname(dataPath), name)));
 mkdirSync(outDir, { recursive: true });
 
 // 1) HTML: template + inlined data (works by double-clicking, no server needed)

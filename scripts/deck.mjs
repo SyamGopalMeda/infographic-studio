@@ -13,13 +13,17 @@ import { spawn } from 'node:child_process';
 import PptxGenJS from 'pptxgenjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const deckArg = process.argv.slice(2).find(a => a.endsWith('.json'));
-if (!deckArg) { console.error('Usage: node scripts/deck.mjs decks/<name>.json'); process.exit(1); }
+const argv = process.argv.slice(2);
+const outOpt = argv.includes('--out') ? argv[argv.indexOf('--out') + 1] : null;
+const deckArg = argv.find((a, i) => a.endsWith('.json') && argv[i - 1] !== '--out');
+if (!deckArg) { console.error('Usage: node scripts/deck.mjs decks/<name>.json [--out <dir>]'); process.exit(1); }
 
 const deckPath = resolve(process.cwd(), deckArg);
 const deck = JSON.parse(readFileSync(deckPath, 'utf8'));
 const name = basename(deckPath, '.json');
-const outDir = join(root, 'out', name);
+// Inside the studio repo: out/<name>/. Used from another project (plugin): next to the JSON, <dir>/<name>/.
+const inStudio = deckPath.toLowerCase().startsWith(root.toLowerCase());
+const outDir = resolve(outOpt || (inStudio ? join(root, 'out', name) : join(dirname(deckPath), name)));
 mkdirSync(outDir, { recursive: true });
 
 // ---------- theme ----------
@@ -40,7 +44,11 @@ pptx.layout = 'LAYOUT_WIDE';
 pptx.author = deck.author || 'Tech Drona';
 pptx.title = deck.title || name;
 
-const rel = p => (isAbsolute(p) ? p : join(root, p));
+// A relative path in a deck: next to the deck file, then the current folder, then the studio folder.
+const rel = p => {
+  if (isAbsolute(p)) return p;
+  return [join(dirname(deckPath), p), resolve(process.cwd(), p), join(root, p)].find(existsSync) || join(root, p);
+};
 
 function render(dataFile, out) {
   return new Promise((ok, fail) => {

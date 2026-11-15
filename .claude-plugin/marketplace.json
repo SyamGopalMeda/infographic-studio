@@ -1,0 +1,12 @@
+{
+  "name": "tech-drona",
+  "owner": { "name": "Tech Drona" },
+  "description": "Tech Drona tools for Claude Code.",
+  "plugins": [
+    {
+      "name": "infographic-studio",
+      "source": "./",
+      "description": "Image or scenario to animated LinkedIn infographic (MP4/GIF/PPTX) or editable PowerPoint deck."
+    }
+  ]
+}

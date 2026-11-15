@@ -217,14 +217,19 @@
 
   // ---------- edges ----------
   // Explicit: item.from = ["id", ...]. Otherwise auto-connect to previous row.
+  // Wires only ever join a row to the row directly above it, so a line can never cross a box.
+  // A "from" that names an item in the same row, a lower row or a row further up is ignored.
   const edges = [];
+  const rowOf = {};
+  rows.forEach((row, ri) => (row.items || []).forEach(it => { rowOf[it.id] = ri; }));
   rows.forEach((row, ri) => {
     if (ri === 0 || row.connect === false) return;
     const prev = rows[ri - 1].items || [];
     const cur = row.items || [];
     cur.forEach((it, ii) => {
-      let from = it.from;
-      if (!from) {
+      let from = (it.from || []).filter(f => rowOf[f] === ri - 1);
+      if (it.from && it.from.length !== from.length) console.warn(`ignored "from" on ${it.id}: only items in the row above can connect`);
+      if (!from.length) {
         if (prev.length === 1 || cur.length === 1) from = cur.length === 1 ? prev.map(p => p.id) : [prev[0].id];
         else {
           // proportional mapping: each prev item feeds the children under it

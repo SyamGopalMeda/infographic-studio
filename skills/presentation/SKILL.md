@@ -5,8 +5,16 @@ description: Turn an image, a scenario, a topic or notes into an editable PowerP
 
 # Presentation (.pptx) from an image or a scenario
 
-Every deck is built by ONE script (`scripts/deck.mjs`) from a deck JSON file. Your job is to write that
-file. Never hand-build slides another way.
+Every deck is built by ONE studio script from a deck JSON file. Your job is to write that file.
+Never hand-build slides another way (no python-pptx, no other PowerPoint skill).
+
+## Where things are (works from any folder)
+
+- **STUDIO** = two folders above this skill's base directory (base directory `…/skills/presentation` →
+  STUDIO is `…`). It contains `scripts/studio.mjs`.
+- **WORK** = where the deck file goes: `decks/` if the current folder IS the studio (it has
+  `scripts/studio.mjs`), otherwise `presentations/` in the current folder (create it).
+- Output: `out/<name>/presentation.pptx` in the studio, else `presentations/<name>/presentation.pptx`.
 
 You may be running unattended (headless): do not ask questions. Make sensible choices and finish.
 
@@ -23,9 +31,11 @@ You may be running unattended (headless): do not ask questions. Make sensible ch
    - Max 5 bullets per slide, max ~12 words per bullet. Put the details in `notes` (speaker notes).
    - Never invent statistics. If a number is unknown, use a non-numeric slide, or mark it
      "example — replace" in a `note`.
-3. **Write `decks/<short-kebab-name>.json`** (schema below). It must be plain, valid JSON.
-4. **Build** (only when NOT told that the caller renders it): `node scripts/deck.mjs decks/<name>.json`
-   The output is `out/<name>/presentation.pptx`.
+3. **Write `WORK/<short-kebab-name>.json`** (schema below). It must be plain, valid JSON.
+4. **Build** (skip this if you were told the caller renders it):
+   `node "STUDIO/scripts/studio.mjs" deck "WORK/<name>.json"`
+   - Use the real absolute STUDIO path in quotes. Allow a timeout of at least 10 minutes: the first run
+     installs packages, and each infographic slide takes about 30 s to render.
 5. **Reply** with the output path and a one-line outline of the deck.
 
 ## Deck schema
@@ -56,11 +66,11 @@ Limits: stats up to 4, process up to 6 steps, cards up to 6, table up to ~8 rows
 
 ### Infographic slides (animated)
 - `"data"` is exactly the data format of the `animated-infographic` skill
-  (`.claude/skills/animated-infographic/SKILL.md`): title, rows, items, tools, from…
+  (`STUDIO/skills/animated-infographic/SKILL.md`): title, rows, items, tools, from…
 - It is rendered automatically as a 16:9 video that plays in the slide. Rendering takes about 30 s per slide, so
   use at most 1–2 per deck, for the system/stack/flow overview.
 - Or point at an existing file: `"dataFile": "data/example.json"`.
 - In 16:9 keep it shorter: max ~5 rows, max 5 items per row.
 
 ### Images
-- `"image"` paths are relative to the project root (for example `input/...` for files the user gave).
+- `"image"` and `"dataFile"` paths may be absolute, or relative to the deck file, the current folder or STUDIO.

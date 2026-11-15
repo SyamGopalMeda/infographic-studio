@@ -5,6 +5,8 @@ Give it an **image** or a **written scenario**. You get back either:
 - **Animated infographic**: layered boxes, logos, and dots moving along the lines. Output is MP4 + GIF + a one-slide PPTX + an HTML preview, sized 1080×1350 for the LinkedIn feed.
 - **PowerPoint presentation**: an editable `.pptx` in Tech Drona style. Slides can include animated infographic videos that play inside the slide.
 
+It is also a **Claude Code plugin** (like HyperFrames). Once installed, it works in **every folder**, not only this one.
+
 One install sets up everything, including the **HyperFrames** plugin for Claude Code (advanced videos).
 
 ## New laptop (one time)
@@ -12,8 +14,24 @@ One install sets up everything, including the **HyperFrames** plugin for Claude 
 git clone <this-repo-url>
 cd infographic-studio
 ```
-1. Double-click **`setup.bat`**. It installs Node.js and Claude Code if missing, then the packages, the recorder, and the HyperFrames plugin. It finishes by test-building an example video and an example deck.
+1. Double-click **`setup.bat`**. It does all of this:
+   - installs Node.js and Claude Code if they are missing
+   - installs the packages and the recorder
+   - test-builds an example video and an example deck
+   - installs **this studio as a Claude plugin**
+   - installs the **HyperFrames** plugin
 2. Open a terminal, type `claude`, and **sign in once**.
+
+### Install only the plugin (no clone needed)
+Once this repo is on GitHub, any laptop with Claude Code and Node.js can install it with two commands:
+```
+claude plugin marketplace add <github-user>/<repo-name>
+claude plugin install infographic-studio@tech-drona
+```
+The first time a skill renders, it installs its packages by itself, which takes 1–2 minutes. The `.bat` files need the cloned repo.
+
+### Update after changes
+Run `git pull`, then `claude plugin marketplace update tech-drona`, then `claude plugin update infographic-studio@tech-drona`. Restart Claude.
 
 ## Use it
 | You want | Do this |
@@ -21,7 +39,7 @@ cd infographic-studio
 | Animated infographic | Drag an image onto **`create.bat`**, or double-click it and type a scenario |
 | PowerPoint deck | Drag an image onto **`deck.bat`**, or double-click it and type a topic or scenario |
 | Automatic | Run **`watch.bat`**. Drop images or `.txt` files into `inbox\` for an infographic, or into `inbox\deck\` for a deck |
-| Inside Claude Code | Run `claude`, then `/animated-infographic photo.png` or `/presentation "intro to our Python course"` |
+| From **any folder** (plugin) | Run `claude` there and ask, e.g. "make an animated infographic of our admission process" or "make a PPT about our Python course". You can also type `/infographic-studio:animated-infographic` or `/infographic-studio:presentation`. Output goes to `infographics\` or `presentations\` in that folder. |
 | Advanced video (HyperFrames) | Run `claude` and ask, e.g. "make a 20-second promo video for our Python course with HyperFrames" |
 
 Each job takes about 1–3 minutes, then the result folder opens: `out\<name>\`.
@@ -45,8 +63,10 @@ The design is always consistent, and you can always fix the text by hand.
 
 | Path | What |
 |---|---|
-| `.claude/skills/animated-infographic/` | Infographic instructions for Claude, plus the data format |
-| `.claude/skills/presentation/` | Deck instructions for Claude, plus the slide types |
+| `skills/animated-infographic/` | Infographic instructions for Claude, plus the data format |
+| `skills/presentation/` | Deck instructions for Claude, plus the slide types |
+| `.claude-plugin/` | Plugin and marketplace files (what makes it installable like HyperFrames) |
+| `scripts/studio.mjs` | Entry point the skills call from any folder (installs packages on first use) |
 | `template/infographic.html` | Infographic design (colours, layout, moving dots) |
 | `data/`, `decks/` | One JSON per infographic or deck (`example*.json` are samples) |
 | `out/`, `input/`, `inbox/` | Generated files and inputs (not in git) |
@@ -54,6 +74,7 @@ The design is always consistent, and you can always fix the text by hand.
 ## Notes
 - Windows only (the `.bat` files). You must be **online**: Claude, the logos, and the fonts are fetched from the internet.
 - Each laptop needs its own Claude sign-in.
+- When used inside another project (for example the LMS repo), add `infographics/` and `presentations/` to that project's `.gitignore` if you don't want to commit them.
 - Brand defaults to **Tech Drona**. If the input is someone else's post, the result is only *inspired by* it, so reword it before posting.
 - A logo showing as a coloured letter means the logo name was wrong. Fix `"logo"` (check https://simpleicons.org) and rebuild.
 - Video in PPTX plays in PowerPoint desktop. Some online viewers show only the still poster image.

@@ -60,6 +60,8 @@ function runClaude(prompt) {
   return new Promise(resolveP => {
     const allowed = ['Read', 'Edit', 'Write', 'Glob', 'Grep'];
     // One fixed command string (no user text in it; the prompt goes via stdin). The shell resolves claude(.cmd).
+    // No --plugin-dir: it marks this folder's files as protected plugin files and blocks the write.
+    // The prompt points Claude at the skill file in this repo instead (works with or without the plugin installed).
     const cmd = `claude -p --permission-mode acceptEdits --allowedTools ${allowed.map(a => `"${a}"`).join(' ')}`;
     const child = spawn(cmd, { cwd: root, shell: true, stdio: ['pipe', 'inherit', 'inherit'] });
     child.on('error', e => { console.error('Could not start Claude Code:', e.message, '\nRun setup.bat first.'); resolveP(1); });
@@ -92,7 +94,8 @@ async function create(input, { mode = 'video', open = !process.env.NO_OPEN } = {
     what = `The input is a written SCENARIO (no image):\n\n"""\n${input}\n"""`;
   }
 
-  const prompt = `Use the ${M.skill} skill to make a ${M.label}. ${what}\n\n` +
+  const prompt = `Make a ${M.label}. First read skills/${M.skill}/SKILL.md in this folder and follow it ` +
+    `(this folder is the studio, so WORK is ${M.dir}/). ${what}\n\n` +
     `Use ${M.dir}/${name}.json as the file name.\n\n` +
     `You are running headless from scripts/create.mjs: do NOT run any command or script yourself; ${M.note} ` +
     'The caller renders the output right after you finish.';

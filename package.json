@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Turn any image into an animated LinkedIn infographic (HTML preview + MP4 + GIF).",
+  "description": "Image or scenario to animated LinkedIn infographic (MP4/GIF/PPTX) or PowerPoint deck.",
   "scripts": {
     "make": "node scripts/make.mjs",
     "preview": "node scripts/make.mjs --no-video"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0",
-    "playwright": "^1.48.0"
+    "playwright": "^1.48.0",
+    "pptxgenjs": "^3.12.0"
   }
 }

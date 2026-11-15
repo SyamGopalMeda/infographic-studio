@@ -1,0 +1,37 @@
+{
+  "title": "Learning at Tech Drona",
+  "author": "Tech Drona",
+  "theme": { "primary": "#1B7A1B", "secondary": "#5552C9" },
+  "slides": [
+    { "type": "title", "title": "Learning at Tech Drona", "subtitle": "From first enquiry to a job-ready certificate", "notes": "Welcome everyone." },
+    { "type": "bullets", "title": "Why students choose us", "bullets": [
+      "Live classes with industry mentors",
+      { "text": "Hands-on projects in every course", "sub": ["Mini projects each week", "A capstone you can show employers"] },
+      "One LMS for classes, tests, recordings and certificates"
+    ] },
+    { "type": "stats", "title": "Programs at a glance", "stats": [
+      { "value": "12", "label": "Courses" }, { "value": "40+", "label": "Live hours per course" }, { "value": "1:1", "label": "Mentor support" }
+    ], "note": "Example numbers: replace with real figures." },
+    { "type": "process", "title": "The student journey", "steps": [
+      { "title": "Enquire", "text": "Website, social media or a referral" },
+      { "title": "Counselling", "text": "Free call to pick the right course" },
+      { "title": "Enroll", "text": "Fee payment and LMS access" },
+      { "title": "Learn", "text": "Live classes, labs and projects" },
+      { "title": "Certify", "text": "Final exam and capstone review" }
+    ] },
+    { "type": "section", "title": "How the platform works", "subtitle": "One system for every role" },
+    { "type": "infographic", "title": "Our tech stack", "dataFile": "data/example.json" },
+    { "type": "two-column", "title": "Online vs campus", "left": { "heading": "Online", "bullets": ["Learn from anywhere", "Recordings of every class"] }, "right": { "heading": "Campus", "bullets": ["Labs and peer groups", "Placement drives on site"] } },
+    { "type": "cards", "title": "What every course includes", "cards": [
+      { "icon": "🎥", "title": "Live classes", "text": "Ask questions in real time" },
+      { "icon": "🧪", "title": "Labs", "text": "Practice on real tools" },
+      { "icon": "📝", "title": "Tests", "text": "Weekly quizzes in the LMS" },
+      { "icon": "🏆", "title": "Certificate", "text": "Verifiable on completion" }
+    ] },
+    { "type": "table", "title": "Course formats", "columns": ["Format", "Duration", "Best for"], "rows": [
+      ["Weekend batch", "12 weeks", "Working professionals"], ["Fast track", "6 weeks", "Final-year students"], ["Self-paced", "Flexible", "Revision and upskilling"]
+    ] },
+    { "type": "quote", "quote": "Tell me and I forget, teach me and I may remember, involve me and I learn.", "by": "Often attributed to Benjamin Franklin" },
+    { "type": "closing", "title": "Thank you", "subtitle": "techdrona.com" }
+  ]
+}

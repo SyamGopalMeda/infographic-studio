@@ -145,6 +145,13 @@
   const map = { primary: '--primary', secondary: '--secondary', bg: '--bg', ink: '--ink', tintA: '--tint-a', tintB: '--tint-b', line: '--line', dot: '--dot' };
   for (const [k, v] of Object.entries(map)) if (theme[k]) stage.style.setProperty(v, theme[k]);
 
+  // Frame size: portrait (LinkedIn feed), landscape (16:9 slides / YouTube), square.
+  const SIZES = { portrait: [1080, 1350], landscape: [1920, 1080], square: [1080, 1080] };
+  const [SW, SH] = SIZES[DATA.format] || SIZES.portrait;
+  stage.style.width = SW + 'px';
+  stage.style.height = SH + 'px';
+  window.__size = { w: SW, h: SH };
+
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const palette = ['#E4572E', '#2E86AB', '#7B2CBF', '#F18F01', '#1B998B', '#C73E1D', '#3D5A80'];
   const colorFor = s => palette[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % palette.length];
@@ -228,7 +235,7 @@
     });
   });
 
-  // ---------- fit to 1350px ----------
+  // ---------- fit to the frame height ----------
   // natural height of the content (not the stretched box)
   function used() {
     const last = content.lastElementChild;
@@ -241,7 +248,7 @@
     const set = v => { fs = v; stage.style.fontSize = v + 'px'; };
     set(fs);
     while (used() > H && fs > 9) set(fs - 0.5);          // too tall: shrink
-    while (used() < H * 0.9 && fs < 27) {                  // lots of room: grow
+    while (used() < H * 0.9 && fs < (SW > 1500 ? 30 : 27)) {                  // lots of room: grow
       set(fs + 0.5);
       if (used() > H) { set(fs - 0.5); break; }
     }
@@ -316,11 +323,11 @@
   // Preview scaling (only for viewing in a normal browser window)
   function scalePreview() {
     if (document.body.classList.contains('capture')) { stage.style.transform = ''; return; }
-    const s = Math.min(window.innerWidth / 1080, window.innerHeight / 1350, 1) * 0.97;
+    const s = Math.min(window.innerWidth / SW, window.innerHeight / SH, 1) * 0.97;
     stage.style.transform = `scale(${s})`;
     document.body.style.height = '100vh';
-    stage.style.marginBottom = `${-1350 * (1 - s)}px`;
-    stage.style.marginRight = `${-1080 * (1 - s)}px`;
+    stage.style.marginBottom = `${-SH * (1 - s)}px`;
+    stage.style.marginRight = `${-SW * (1 - s)}px`;
   }
 
   function layout() { fit(); drawWires(); window.renderAt(performance.now() / 1000); }

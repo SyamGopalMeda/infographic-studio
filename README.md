@@ -1,49 +1,59 @@
 # Infographic Studio
 
-Give it an **image** or a **written scenario**, and you get an **animated LinkedIn infographic**: layered boxes, logos, and dots moving along the lines. The output is 1080×1350, as MP4 + GIF + HTML preview.
+Give it an **image** or a **written scenario**. You get back either:
+
+- **Animated infographic**: layered boxes, logos, and dots moving along the lines. Output is MP4 + GIF + a one-slide PPTX + an HTML preview, sized 1080×1350 for the LinkedIn feed.
+- **PowerPoint presentation**: an editable `.pptx` in Tech Drona style. Slides can include animated infographic videos that play inside the slide.
+
+One install sets up everything, including the **HyperFrames** plugin for Claude Code (advanced videos).
 
 ## New laptop (one time)
 ```
 git clone <this-repo-url>
 cd infographic-studio
 ```
-1. Double-click **`setup.bat`**. It installs Node.js and Claude Code if they are missing, the packages, and the recorder.
+1. Double-click **`setup.bat`**. It installs Node.js and Claude Code if missing, then the packages, the recorder, and the HyperFrames plugin. It finishes by test-building an example video and an example deck.
 2. Open a terminal, type `claude`, and **sign in once**.
 
-## Make an infographic
-| Way | How |
+## Use it
+| You want | Do this |
 |---|---|
-| **Drag & drop** | Drag an image onto **`create.bat`** |
-| **Type a scenario** | Double-click `create.bat` and type e.g. `how a student gets a certificate` |
-| **Auto mode** | Run **`watch.bat`**, then drop images or `.txt` scenario files into the `inbox` folder. Each one is converted automatically. |
-| **Terminal** | `node scripts/create.mjs "path\to\image.png"` or `node scripts/create.mjs "your scenario"` |
-| **Inside Claude Code** | `claude`, then `/animated-infographic path\to\image.png` |
+| Animated infographic | Drag an image onto **`create.bat`**, or double-click it and type a scenario |
+| PowerPoint deck | Drag an image onto **`deck.bat`**, or double-click it and type a topic or scenario |
+| Automatic | Run **`watch.bat`**. Drop images or `.txt` files into `inbox\` for an infographic, or into `inbox\deck\` for a deck |
+| Inside Claude Code | Run `claude`, then `/animated-infographic photo.png` or `/presentation "intro to our Python course"` |
+| Advanced video (HyperFrames) | Run `claude` and ask, e.g. "make a 20-second promo video for our Python course with HyperFrames" |
 
-It takes about 1–3 minutes. The result folder opens by itself: `out\<name>\infographic.mp4`. **Post the MP4 on LinkedIn.**
+Each job takes about 1–3 minutes, then the result folder opens: `out\<name>\`.
+- Infographic: `infographic.mp4` (post this on LinkedIn), `infographic.gif`, `infographic.pptx`, `poster.png`
+- Deck: `presentation.pptx`
 
-## Edit and re-render without Claude
-Change the text in `data\<name>.json`, then run:
-```
-node scripts\make.mjs data\<name>.json
-```
-Add `--no-video` for a quick HTML preview only.
+## Edit and rebuild without Claude
+- Infographic: edit `data\<name>.json`, then run `node scripts\make.mjs data\<name>.json`
+  - Options: `--format landscape` (16:9) or `--format square`, `--pptx`, `--no-gif`, `--no-video` (HTML only)
+- Deck: edit `decks\<name>.json`, then run `node scripts\deck.mjs decks\<name>.json`
+- You can also open the `.pptx` and edit it directly in PowerPoint.
 
 ## How it works
-1. `scripts/create.mjs` gives the image or scenario to Claude Code, which runs headless with the project skill.
-2. Claude writes only a **data file** (`data/<name>.json`): the title, rows, boxes, tools, logos and connections.
-3. `scripts/make.mjs` puts that data into **one fixed template** (`template/infographic.html`). It then records the animation frame by frame in a headless browser and encodes it with ffmpeg.
+1. `scripts/create.mjs` sends the image or scenario to Claude Code, running headless with a project skill.
+2. Claude writes **only a JSON file**: `data/<name>.json` for an infographic, or `decks/<name>.json` for a deck.
+3. The scripts render it:
+   - `make.mjs` fills the fixed template, records it frame by frame in headless Chrome, and encodes it with ffmpeg.
+   - `deck.mjs` builds the slides with PptxGenJS.
 
-Every post therefore has the same consistent look, and you can always fix the text by hand.
+The design is always consistent, and you can always fix the text by hand.
 
 | Path | What |
 |---|---|
-| `.claude/skills/animated-infographic/SKILL.md` | Instructions for Claude, plus the data format |
-| `template/infographic.html` | The design (colours, layout, moving dots) |
-| `data/` | One JSON per post (`example.json` = stack, `example-scenario.json` = process) |
+| `.claude/skills/animated-infographic/` | Infographic instructions for Claude, plus the data format |
+| `.claude/skills/presentation/` | Deck instructions for Claude, plus the slide types |
+| `template/infographic.html` | Infographic design (colours, layout, moving dots) |
+| `data/`, `decks/` | One JSON per infographic or deck (`example*.json` are samples) |
 | `out/`, `input/`, `inbox/` | Generated files and inputs (not in git) |
 
 ## Notes
-- You must be **online**: Claude, the logos (simpleicons.org) and the font (Google Fonts) are all fetched from the internet.
-- Brand defaults to **Tech Drona**. If the input is someone else's post, the result is a remake *inspired by* it; reword it before posting.
-- Logo shows as a coloured letter? The logo name was wrong. Fix `"logo"` in the data file (check https://simpleicons.org) and re-render.
-- Change the colours for all posts in `theme`, or edit the `:root` colours in the template.
+- Windows only (the `.bat` files). You must be **online**: Claude, the logos, and the fonts are fetched from the internet.
+- Each laptop needs its own Claude sign-in.
+- Brand defaults to **Tech Drona**. If the input is someone else's post, the result is only *inspired by* it, so reword it before posting.
+- A logo showing as a coloured letter means the logo name was wrong. Fix `"logo"` (check https://simpleicons.org) and rebuild.
+- Video in PPTX plays in PowerPoint desktop. Some online viewers show only the still poster image.

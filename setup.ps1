@@ -62,7 +62,7 @@ if (Test-Path $installed) {
   $info = Get-Content $installed -Raw | ConvertFrom-Json
   $entry = $info.plugins.'infographic-studio@tech-drona' | Select-Object -First 1
   if ($entry -and (Test-Path (Join-Path $entry.installPath 'scripts\studio.mjs'))) {
-    node (Join-Path $entry.installPath 'scripts\studio.mjs') check
+    node (Join-Path $entry.installPath 'scripts\studio.mjs') install
   } else { Write-Warning "Plugin install not found. Retry: claude plugin install infographic-studio@tech-drona" }
 }
 claude plugin list

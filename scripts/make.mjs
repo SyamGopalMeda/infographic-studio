@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, basename, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
+import { checkFile } from './check.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -24,7 +25,8 @@ if (!dataArg) {
 
 const SIZES = { portrait: [1080, 1350], landscape: [1920, 1080], square: [1080, 1080] };
 const dataPath = resolve(process.cwd(), dataArg);
-const data = JSON.parse(readFileSync(dataPath, 'utf8')); // fail fast on bad JSON
+// Validate + auto-fix first (prints only problems). --no-check skips it.
+const data = flag('no-check') ? JSON.parse(readFileSync(dataPath, 'utf8')) : await checkFile(dataPath, 'infographic');
 if (opt('format')) data.format = opt('format');
 if (!SIZES[data.format]) data.format = 'portrait';
 const [W, H] = SIZES[data.format];
@@ -40,9 +42,10 @@ const template = readFileSync(join(root, 'template', 'infographic.html'), 'utf8'
 const safeJson = JSON.stringify(data, null, 2).replace(/</g, '\\u003c');
 const htmlPath = join(outDir, 'infographic.html');
 writeFileSync(htmlPath, template.replace('/*DATA*/', () => safeJson));
-console.log(`HTML   -> ${htmlPath}`);
+const made = ['infographic.html'];
+const tty = process.stdout.isTTY; // progress lines only for people, not for Claude (saves tokens)
 
-if (flag('no-video')) process.exit(0);
+if (flag('no-video')) { console.log(`Done: ${outDir} [infographic.html]`); process.exit(0); }
 
 // 2) MP4: step the animation frame by frame in headless Chromium, pipe PNGs to ffmpeg
 const { chromium } = await import('playwright');
@@ -60,6 +63,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 await page.goto(pathToFileURL(htmlPath).href + '?capture', { waitUntil: 'networkidle' });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
+const report = await page.evaluate(() => window.__report || null);
 
 const run = argv => spawn(ffmpegPath, argv, { stdio: ['pipe', 'ignore', 'pipe'] });
 const ff = run(['-y', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
@@ -73,15 +77,14 @@ for (let i = 0; i < frames; i++) {
   const png = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: W, height: H } });
   if (i === Math.round(fps * 0.4)) writeFileSync(posterPath, png); // still image (dots mid-way)
   if (!ff.stdin.write(png)) await new Promise(r => ff.stdin.once('drain', r));
-  if (i % fps === 0) process.stdout.write(`\rframes ${i}/${frames}`);
+  if (tty && i % fps === 0) process.stdout.write(`\rframes ${i}/${frames}`);
 }
 ff.stdin.end();
 await browser.close();
 const code = await ffDone;
-process.stdout.write('\n');
-if (code !== 0) { console.error(ffErr.slice(-2000)); process.exit(code); }
-console.log(`MP4    -> ${mp4Path}`);
-console.log(`Poster -> ${posterPath}`);
+if (tty) process.stdout.write('\n');
+if (code !== 0) { console.error(ffErr.slice(-1500)); process.exit(code); }
+made.push('infographic.mp4', 'poster.png');
 
 // 3) GIF (optional): two-pass palette for clean colours, 15 fps to keep it small
 if (!flag('no-gif')) {
@@ -93,7 +96,7 @@ if (!flag('no-gif')) {
   let gErr = ''; g.stderr.on('data', d => { gErr += d; });
   const gc = await new Promise(r => g.on('close', r));
   if (gc !== 0) { console.error(gErr.slice(-2000)); process.exit(gc); }
-  console.log(`GIF    -> ${gifPath}`);
+  made.push('infographic.gif');
 }
 
 // 4) PPTX (optional): one 16:9 slide with the animation playing (poster shown until it starts)
@@ -109,6 +112,15 @@ if (flag('pptx')) {
   s.addMedia({ type: 'video', path: mp4Path, x, y, w, h, cover });
   const pptxPath = join(outDir, 'infographic.pptx');
   await pptx.writeFile({ fileName: pptxPath });
-  console.log(`PPTX   -> ${pptxPath}`);
+  made.push('infographic.pptx');
 }
-console.log('Done.');
+
+// Short text summary so nobody has to open the image to check it.
+if (report) {
+  const issues = [];
+  if (report.overflow > 0) issues.push(`content is ${report.overflow}px too tall: remove rows or shorten text`);
+  if (report.font < 12) issues.push(`text is small (${report.font}px): use fewer rows/items`);
+  if (report.missing?.length) issues.push(`logos not loaded: ${report.missing.join(', ')}`);
+  console.log(`summary: ${report.rows} rows, ${report.wires} lines, text ${report.font}px, ${issues.length ? 'ISSUES: ' + issues.join('; ') : 'fits, all logos loaded'}`);
+}
+console.log(`Done: ${outDir} [${made.join(', ')}]`);

@@ -11,6 +11,7 @@ import { resolve, basename, dirname, join, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import PptxGenJS from 'pptxgenjs';
+import { checkFile } from './check.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -19,7 +20,7 @@ const deckArg = argv.find((a, i) => a.endsWith('.json') && argv[i - 1] !== '--ou
 if (!deckArg) { console.error('Usage: node scripts/deck.mjs decks/<name>.json [--out <dir>]'); process.exit(1); }
 
 const deckPath = resolve(process.cwd(), deckArg);
-const deck = JSON.parse(readFileSync(deckPath, 'utf8'));
+const deck = argv.includes('--no-check') ? JSON.parse(readFileSync(deckPath, 'utf8')) : await checkFile(deckPath, 'deck');
 const name = basename(deckPath, '.json');
 // Inside the studio repo: out/<name>/. Used from another project (plugin): next to the JSON, <dir>/<name>/.
 const inStudio = deckPath.toLowerCase().startsWith(root.toLowerCase());
@@ -197,7 +198,6 @@ async function infographic(s, d, i) {
   let dataFile;
   if (d.dataFile) dataFile = rel(d.dataFile);
   else { dataFile = join(media, 'data.json'); writeFileSync(dataFile, JSON.stringify(d.data || {}, null, 2)); }
-  console.log(`\nSlide ${i + 1}: rendering animated infographic…`);
   await render(dataFile, media);
   const area = d.title ? BODY : { x: 0, y: 0, w: SW, h: SH };
   const k = Math.min(area.w / 16, area.h / 9), w = 16 * k, h = 9 * k;
@@ -217,4 +217,4 @@ for (const [i, d] of slides.entries()) {
 }
 const pptxPath = join(outDir, 'presentation.pptx');
 await pptx.writeFile({ fileName: pptxPath });
-console.log(`\nPPTX -> ${pptxPath}  (${slides.length} slides)`);
+console.log(`Done: ${pptxPath} (${slides.length} slides)`);

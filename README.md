@@ -46,7 +46,7 @@ Each job takes about 1–3 minutes, then the result folder opens: `out\<name>\`.
 - Deck: `presentation.pptx`
 
 ## Edit and rebuild without Claude
-- Infographic: edit `data\<name>.json`, then run `node scripts\make.mjs data\<name>.json`
+- Infographic: edit `data\<name>.json`, then run `node scripts\make.mjs data\<name>.json` (it checks and auto-fixes the JSON first; `node scripts\check.mjs file.json` checks only)
   - Options: `--format landscape` (16:9) or `--format square`, `--pptx`, `--no-gif`, `--no-video` (HTML only)
 - Deck: edit `decks\<name>.json`, then run `node scripts\deck.mjs decks\<name>.json`
 - You can also open the `.pptx` and edit it directly in PowerPoint.
@@ -69,6 +69,24 @@ The design is always consistent, and you can always fix the text by hand.
 | `template/infographic.html` | Infographic design (colours, layout, moving dots) |
 | `data/`, `decks/` | One JSON per infographic or deck (`example*.json` are samples) |
 | `out/`, `input/`, `inbox/` | Generated files and inputs (not in git) |
+
+## Token usage (measured 2026-11-15)
+One design job, run headless the way `create.bat` runs it:
+
+| Job | Before (Opus, default settings) | After (v1.4) | Saving |
+|---|---|---|---|
+| Scenario to infographic | $0.225 (122k tokens read, 1.8k written) | **$0.034** (9k read, 1.0k written) | **-85%** |
+| Image to infographic | $0.297 (124k read, 3.9k written) | **$0.060** (17k read, 2.6k written) | **-80%** |
+
+What changed:
+- The design step uses **Sonnet at low effort**, which costs half of Opus per token.
+- The launcher turns off MCP servers, the skill listing and unused tools for that one job. Most of the old 122k tokens were Claude Code's own background context.
+- Input images are **shrunk to 1024 px** before Claude reads them (`studio.mjs prep`).
+- In Claude Code, both skills run in a **forked Sonnet session**, so the image and the instructions stay out of your main chat.
+- A **checker** fixes mistakes before rendering (bad logo names, wrong links, comments in the JSON), so a second attempt is rarely needed.
+- The scripts print **short output**: a `summary:` line instead of looking at the image, and no progress spam.
+
+To check your own usage, type `/usage` in Claude Code, or run `npx ccusage@latest`.
 
 ## Notes
 - Windows only (the `.bat` files). You must be **online**: Claude, the logos, and the fonts are fetched from the internet.

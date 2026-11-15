@@ -2,7 +2,7 @@
   "name": "infographic-studio",
   "displayName": "Infographic Studio",
   "description": "Tech Drona Infographic Studio. Turn an image or a written scenario into an animated LinkedIn infographic (MP4, GIF, PPTX) or an editable PowerPoint deck. Also installs HyperFrames for general video work.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": { "name": "Tech Drona" },
   "repository": "https://github.com/SyamGopalMeda/infographic-studio",
   "license": "UNLICENSED",

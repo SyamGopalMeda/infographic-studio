@@ -162,7 +162,7 @@
     if (t.icon) return `<span class="emoji">${esc(t.icon)}</span>`;
     const src = t.logoUrl || (t.logo ? `https://cdn.simpleicons.org/${encodeURIComponent(t.logo)}` : null);
     if (!src) return fb;
-    return `<img src="${esc(src)}" alt="" crossorigin="anonymous" onerror="this.outerHTML=this.dataset.fb" data-fb="${esc(fb)}">`;
+    return `<img src="${esc(src)}" alt="${esc(t.name || t.label || '')}" crossorigin="anonymous" onerror="(window.__missing=window.__missing||[]).push(this.alt);this.outerHTML=this.dataset.fb" data-fb="${esc(fb)}">`;
   }
   const toolHTML = t => `<div class="tool"><span class="lg">${logoHTML(t)}</span><span class="name">${esc(t.name)}</span></div>`;
 
@@ -258,7 +258,9 @@
       if (used() > H) { set(fs - 0.5); break; }
     }
     // spread rows evenly over any space that is left
+    const overflow = Math.max(0, Math.round(used() - H));
     if (H - used() > 30) content.style.justifyContent = 'space-between';
+    return { font: fs, overflow };
   }
 
   // ---------- wires ----------
@@ -335,7 +337,10 @@
     stage.style.marginRight = `${-SW * (1 - s)}px`;
   }
 
-  function layout() { fit(); drawWires(); window.renderAt(performance.now() / 1000); }
+  function layout() {
+    const f = fit(); drawWires(); window.renderAt(performance.now() / 1000);
+    window.__report = { font: f.font, overflow: f.overflow, rows: rows.length, wires: wires.length, missing: window.__missing || [] };
+  }
 
   if (new URLSearchParams(location.search).has('capture')) document.body.classList.add('capture');
   scalePreview();

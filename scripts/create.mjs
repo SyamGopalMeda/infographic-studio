@@ -56,18 +56,58 @@ function runNode(script, args) {
 // Runs Claude Code non-interactively. The prompt goes through stdin, so there are no shell quoting problems.
 // Permissions are passed as flags: project settings are ignored until a folder is "trusted", which a
 // fresh clone never is. Claude may only read and write files; it never runs commands here.
+// Claude Code flags that cut tokens for this one job (measured: see README "Token usage"):
+//  - Sonnet at low effort: half Opus's price per token, and less thinking
+//  - --strict-mcp-config: no MCP servers (their tool definitions cost thousands of tokens per request)
+//  - --disable-slash-commands: no skill/plugin listing (the format is given in the prompt instead)
+//  - --tools: only the 3 tools needed, so fewer tool definitions are sent
+//  - --max-budget-usd: hard stop if something loops
+// The prompt goes through stdin (no shell quoting of user text). No --plugin-dir: it marks this
+// folder's files as protected plugin files and blocks the write.
+export const CLAUDE_FLAGS = ['--model', 'sonnet', '--effort', 'low', '--max-budget-usd', '1',
+  '--permission-mode', 'acceptEdits', '--strict-mcp-config', '--disable-slash-commands',
+  '--tools', 'Read,Write,Edit', '--allowedTools', 'Read', 'Write', 'Edit'];
+
 function runClaude(prompt) {
   return new Promise(resolveP => {
-    const allowed = ['Read', 'Edit', 'Write', 'Glob', 'Grep'];
-    // One fixed command string (no user text in it; the prompt goes via stdin). The shell resolves claude(.cmd).
-    // No --plugin-dir: it marks this folder's files as protected plugin files and blocks the write.
-    // The prompt points Claude at the skill file in this repo instead (works with or without the plugin installed).
-    const cmd = `claude -p --permission-mode acceptEdits --allowedTools ${allowed.map(a => `"${a}"`).join(' ')}`;
+    const cmd = `claude -p ${CLAUDE_FLAGS.map(a => (/[\s,]/.test(a) ? `"${a}"` : a)).join(' ')}`;
     const child = spawn(cmd, { cwd: root, shell: true, stdio: ['pipe', 'inherit', 'inherit'] });
     child.on('error', e => { console.error('Could not start Claude Code:', e.message, '\nRun setup.bat first.'); resolveP(1); });
     child.on('close', code => resolveP(code ?? 1));
     child.stdin.end(prompt);
   });
+}
+
+// Shrink an input image with the studio's prep step; returns the small PNG path (relative to the studio).
+function prepImage(path) {
+  return new Promise(r => {
+    const c = spawn(process.execPath, [join(root, 'scripts', 'studio.mjs'), 'prep', path], { cwd: root });
+    let out = ''; c.stdout.on('data', d => { out += d; });
+    c.on('close', () => {
+      const line = out.trim().split('\n').at(-1) || '';
+      console.log(`Image: ${line}`);
+      const p = line.split('  (')[0];
+      r(existsSync(p) ? p.slice(root.length + 1).split('\\').join('/') : null);
+    });
+  });
+}
+
+// The compact design-only prompt (the format comes from the skill files, so there is one source of truth).
+export function buildPrompt(mode, inputLine, file) {
+  if (mode === 'deck') {
+    const sk = readFileSync(join(root, 'skills', 'presentation', 'SKILL.md'), 'utf8');
+    const fmt = sk.slice(sk.indexOf('```json'));
+    return `Design a PowerPoint deck for Tech Drona and save it as ${file} (plain JSON). ` +
+      'Do not run commands or ask questions. 8-12 slides: title, then one idea per slide, then closing. Mix slide types, ' +
+      'use at most 5 short bullets per slide, put detail in "notes", and never invent statistics. Use "author": "Tech Drona".\n\n' +
+      `${inputLine}\n\nFormat:\n${fmt.replaceAll('${CLAUDE_PLUGIN_ROOT}/', '')}\n\nAfter writing, reply with a one-line outline only.`;
+  }
+  const schema = readFileSync(join(root, 'skills', 'animated-infographic', 'schema.md'), 'utf8');
+  return `Design an animated infographic for Tech Drona and save it as ${file} (plain JSON). ` +
+    'Do not run commands or ask questions. Make a clear top-to-bottom flow: for a process, triggers -> stages (bar) -> details (group) -> outcome (final); ' +
+    'for a system, channels (card) -> categories (bar) -> tools (group) -> outcome. From a diagram image, keep its structure but reword it, ' +
+    'and never use the original creator\'s name. Use real brand logos only for real technology, otherwise emoji icons.\n\n' +
+    `${inputLine}\n\n${schema}\n\nAfter writing, reply with a LinkedIn caption only (a hook, 2-3 lines and 3-5 hashtags).`;
 }
 
 async function create(input, { mode = 'video', open = !process.env.NO_OPEN } = {}) {
@@ -81,24 +121,18 @@ async function create(input, { mode = 'video', open = !process.env.NO_OPEN } = {
     const ext = extname(asPath).toLowerCase();
     if (TEXT.has(ext)) return create(readFileSync(asPath, 'utf8'), { mode, open });
     if (!IMG.has(ext)) { console.error(`Not an image or text file: ${asPath}`); return 1; }
-    mkdirSync(join(root, 'input'), { recursive: true });
     name = slug(basename(asPath, ext));
-    const local = join('input', `${stamp()}-${name}${ext}`).replace(/\\/g, '/');
-    copyFileSync(asPath, join(root, local));
-    console.log(`Image: ${local}`);
-    what = `The input is an IMAGE at ${local}. Read it first.`;
+    const small = await prepImage(asPath);
+    if (!small) { console.error('Could not read that image.'); return 1; }
+    what = `Input: the IMAGE at ${small} (Read it once).`;
   } else {
     if (input.length < 3) { console.error('Please give an image path or describe a scenario.'); return 1; }
     name = slug(input.split(/\s+/).slice(0, 6).join(' '));
     console.log(`Scenario: ${input.slice(0, 120)}${input.length > 120 ? '…' : ''}`);
-    what = `The input is a written SCENARIO (no image):\n\n"""\n${input}\n"""`;
+    what = `Input scenario:\n"""\n${input}\n"""`;
   }
 
-  const prompt = `Make a ${M.label}. First read skills/${M.skill}/SKILL.md in this folder and follow it ` +
-    `(this folder is the studio, so WORK is ${M.dir}/). ${what}\n\n` +
-    `Use ${M.dir}/${name}.json as the file name.\n\n` +
-    `You are running headless from scripts/create.mjs: do NOT run any command or script yourself; ${M.note} ` +
-    'The caller renders the output right after you finish.';
+  const prompt = buildPrompt(mode, what, `${M.dir}/${name}.json`);
 
   console.log(`Step 1/2  Claude is designing the ${M.label}… (about 1–2 minutes)\n`);
   const code = await runClaude(prompt);
@@ -107,8 +141,6 @@ async function create(input, { mode = 'video', open = !process.env.NO_OPEN } = {
     console.error(`\nClaude did not write a ${M.dir}/*.json file. Read the messages above (is Claude Code signed in? run: claude).`);
     return code || 1;
   }
-  try { JSON.parse(readFileSync(file, 'utf8')); } catch (e) { console.error(`\nInvalid JSON in ${file}: ${e.message}`); return 1; }
-
   console.log(`\nStep 2/2  Rendering ${basename(file)}…`);
   const rc = await runNode(M.script, [file, ...M.extra]);
   if (rc !== 0) { console.error('\nRendering failed (see above).'); return rc; }
@@ -162,8 +194,10 @@ async function watch() {
   setInterval(scan, 2000);
 }
 
-const args = process.argv.slice(2);
-if (args.includes('--watch')) {
+const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const args = isMain ? process.argv.slice(2) : [];
+if (!isMain) { /* imported (e.g. by measure scripts): do nothing */ }
+else if (args.includes('--watch')) {
   await watch();
 } else {
   const mode = args.includes('--deck') ? 'deck' : 'video';

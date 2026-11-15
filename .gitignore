@@ -3,3 +3,4 @@ out/
 input/
 inbox/
 .claude/settings.local.json
+install.log

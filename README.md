@@ -11,7 +11,7 @@ One install sets up everything, including the **HyperFrames** plugin for Claude 
 
 ## New laptop (one time)
 ```
-git clone <this-repo-url>
+git clone https://github.com/SyamGopalMeda/infographic-studio.git
 cd infographic-studio
 ```
 1. Double-click **`setup.bat`**. It does all of this:
@@ -23,9 +23,9 @@ cd infographic-studio
 2. Open a terminal, type `claude`, and **sign in once**.
 
 ### Install only the plugin (no clone needed)
-Once this repo is on GitHub, any laptop with Claude Code and Node.js can install it with two commands:
+Any laptop with Claude Code and Node.js can install it with two commands:
 ```
-claude plugin marketplace add <github-user>/<repo-name>
+claude plugin marketplace add SyamGopalMeda/infographic-studio
 claude plugin install infographic-studio@tech-drona
 ```
 The first time a skill renders, it installs its packages by itself, which takes 1–2 minutes. The `.bat` files need the cloned repo.
